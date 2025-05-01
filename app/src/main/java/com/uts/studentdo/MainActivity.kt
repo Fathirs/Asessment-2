@@ -3,45 +3,49 @@ package com.uts.studentdo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.uts.studentdo.ui.theme.StudentDoTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uts.studentdo.ui.TaskViewModel
+import com.uts.studentdo.ui.TaskViewModelFactory
+import com.uts.studentdo.ui.theme.StudentTaskManagerTheme
+import com.uts.studentdo.ui.screens.AppNavHost
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val taskRepository = (application as TaskManagerApplication).taskRepository
+        val userPreferencesRepository = (application as TaskManagerApplication).userPreferencesRepository
+
         setContent {
-            StudentDoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            // Create view model with factory
+            val taskViewModel: TaskViewModel = viewModel(
+                factory = TaskViewModelFactory(taskRepository, userPreferencesRepository)
+            )
+
+            // Get the user preferences for theme
+            val userPreferences by taskViewModel.userPreferences.collectAsState(
+                initial = com.uts.studentdo.data.UserPreferences(
+                    darkTheme = isSystemInDarkTheme(),
+                    sortOrder = "date",
+                    priorityFilter = 0
+                )
+            )
+
+            StudentTaskManagerTheme(darkTheme = userPreferences.darkTheme) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    AppNavHost(taskViewModel = taskViewModel)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StudentDoTheme {
-        Greeting("Android")
     }
 }
