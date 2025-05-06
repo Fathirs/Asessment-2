@@ -24,6 +24,9 @@ interface TaskDao {
     @Query("SELECT * FROM deleted_tasks")
     fun getDeletedTasks(): Flow<List<DeletedTask>>
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDeletedTask(deletedTask: DeletedTask)
+
     @Query("DELETE FROM tasks WHERE id = :taskId")
     suspend fun deleteTaskById(taskId: Long)
 

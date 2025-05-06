@@ -35,6 +35,9 @@ class TaskRepository(private val taskDao: TaskDao) {
             dueDate = task.dueDate,
             priority = task.priority
         )
+        
+        // Insert into deleted_tasks table
+        taskDao.insertDeletedTask(deletedTask)
 
         // Then delete from tasks
         taskDao.deleteTask(task)
